@@ -1,0 +1,267 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sfoglia la Notizia - Edizione Quotidiana</title>
+    
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Libre+Franklin:wght@400;500;600;700&family=Playfair+Display:ital,wght@0,700;0,900;1,700&display=swap" rel="stylesheet">
+    
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+    <script src="https://cdn.tailwindcss.com"></script>
+
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        serif: ['"Playfair Display"', 'serif'],
+                        sans: ['"Libre Franklin"', 'sans-serif'],
+                    },
+                    colors: {
+                        'paper-bg': '#f9f9f9',
+                        'news-black': '#111111',
+                        'accent-red': '#cc0000',
+                        // Colori Bias Politico
+                        'bias-sx': '#d32f2f', // Rosso Sinistra
+                        'bias-dx': '#1565c0', // Blu Destra
+                        'bias-cx': '#2e7d32', // Verde Centro
+                        'bias-ind': '#7b1fa2', // Viola Indipendente
+                    }
+                }
+            }
+        }
+    </script>
+</head>
+<body class="bg-paper-bg text-news-black font-sans antialiased selection:bg-accent-red selection:text-white">
+
+    <div class="bg-white border-b border-gray-200 py-1">
+        <div class="max-w-screen-xl mx-auto px-4 text-center text-xs font-bold text-gray-500 uppercase tracking-widest">
+            Sabato, 27 Dicembre 2025 &bull; Aggiornato alle 10:45 &bull; Roma, Italia
+        </div>
+    </div>
+
+    <header class="bg-white pt-8 pb-6 border-b-4 border-black text-center">
+        <h1 class="font-serif font-black text-5xl md:text-7xl uppercase tracking-tighter leading-none mb-2">
+            Sfoglia la Notizia
+        </h1>
+        <p class="text-sm font-medium text-gray-600 uppercase tracking-widest">Il primo aggregatore ragionato a confronto</p>
+    </header>
+
+    <nav class="bg-white border-b border-gray-300 sticky top-0 z-50 shadow-sm">
+        <div class="max-w-screen-xl mx-auto px-4">
+            <ul class="flex flex-wrap justify-center gap-6 md:gap-10 py-3 text-xs md:text-sm font-bold uppercase tracking-wide">
+                <li><a href="#" class="hover:text-accent-red transition-colors">Primo Piano</a></li>
+                <li><a href="#" class="hover:text-accent-red transition-colors">Politica</a></li>
+                <li><a href="#" class="hover:text-accent-red transition-colors">Economia</a></li>
+                <li><a href="#" class="hover:text-accent-red transition-colors">Cronaca</a></li>
+                <li><a href="#" class="hover:text-accent-red transition-colors">Sport</a></li>
+                <li><a href="#" class="hover:text-accent-red transition-colors">Meteo</a></li>
+            </ul>
+        </div>
+    </nav>
+
+    <div class="bg-gray-100 border-b border-gray-200 py-2">
+        <div class="max-w-screen-xl mx-auto px-4 flex flex-col md:flex-row justify-between items-center text-[10px] md:text-xs font-bold uppercase text-gray-600 gap-2">
+            
+            <div class="flex items-center gap-3">
+                <span>Orientamento:</span>
+                <span class="flex items-center gap-1"><span class="block w-2 h-2 rounded-full bg-bias-sx"></span> Sinistra</span>
+                <span class="flex items-center gap-1"><span class="block w-2 h-2 rounded-full bg-bias-cx"></span> Centro</span>
+                <span class="flex items-center gap-1"><span class="block w-2 h-2 rounded-full bg-bias-dx"></span> Destra</span>
+            </div>
+
+            <div class="flex items-center gap-3">
+                <span>Sentiment Analysis:</span>
+                <span class="flex items-center gap-1"><i class="fa-solid fa-face-smile text-green-600"></i> Positivo</span>
+                <span class="flex items-center gap-1"><i class="fa-solid fa-fire text-red-600"></i> Polemico</span>
+                <span class="flex items-center gap-1"><i class="fa-solid fa-face-frown text-orange-500"></i> Negativo</span>
+            </div>
+        </div>
+    </div>
+
+    <div class="max-w-screen-xl mx-auto bg-white shadow-xl min-h-screen grid grid-cols-1 lg:grid-cols-12">
+
+        <main class="lg:col-span-8 p-6 md:p-10 border-r border-gray-200">
+
+            <article class="mb-12 border-b border-gray-200 pb-10 last:border-0">
+                <span class="block text-xs font-bold text-accent-red uppercase tracking-widest mb-2">La Manovra Economica</span>
+                <h2 class="font-serif font-bold text-3xl md:text-4xl leading-tight mb-4 hover:underline cursor-pointer">
+                    Approvata la Legge di Bilancio: è scontro totale sulle nuove tasse e il cuneo fiscale
+                </h2>
+                
+                <div class="relative w-full h-64 md:h-96 mb-6 overflow-hidden bg-gray-200 group cursor-pointer">
+                    <img src="https://placehold.co/800x450/222/fff?text=Foto+Parlamento" alt="Parlamento" class="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105">
+                </div>
+
+                <div class="flex flex-col">
+                    
+                    <div class="flex gap-4 py-4 border-b border-gray-100 group">
+                        <div class="w-1.5 bg-bias-sx shrink-0 self-stretch"></div>
+                        <div class="flex-grow">
+                            <div class="flex justify-between items-center mb-1">
+                                <span class="text-xs font-bold text-bias-sx uppercase">La Repubblica</span>
+                                <span class="text-xs text-gray-400 font-medium">10 min fa</span>
+                            </div>
+                            <a href="#" class="block text-lg font-medium leading-snug group-hover:text-accent-red transition-colors">
+                                Manovra iniqua, stangata sui ceti medi: le opposizioni insorgono
+                                <i class="fa-solid fa-fire text-red-600 ml-2 text-sm" title="Tono: Polemico"></i>
+                            </a>
+                        </div>
+                    </div>
+
+                    <div class="flex gap-4 py-4 border-b border-gray-100 group">
+                        <div class="w-1.5 bg-bias-dx shrink-0 self-stretch"></div>
+                        <div class="flex-grow">
+                            <div class="flex justify-between items-center mb-1">
+                                <span class="text-xs font-bold text-bias-dx uppercase">Il Giornale</span>
+                                <span class="text-xs text-gray-400 font-medium">15 min fa</span>
+                            </div>
+                            <a href="#" class="block text-lg font-medium leading-snug group-hover:text-accent-red transition-colors">
+                                Manovra coraggiosa: meno tasse per le imprese e aiuti concreti alle famiglie
+                                <i class="fa-solid fa-face-smile text-green-600 ml-2 text-sm" title="Tono: Positivo"></i>
+                            </a>
+                        </div>
+                    </div>
+
+                    <div class="flex gap-4 py-4 group">
+                        <div class="w-1.5 bg-bias-cx shrink-0 self-stretch"></div>
+                        <div class="flex-grow">
+                            <div class="flex justify-between items-center mb-1">
+                                <span class="text-xs font-bold text-bias-cx uppercase">Il Sole 24 Ore</span>
+                                <span class="text-xs text-gray-400 font-medium">1 ora fa</span>
+                            </div>
+                            <a href="#" class="block text-lg font-medium leading-snug group-hover:text-accent-red transition-colors">
+                                Legge di Bilancio: l'analisi tecnica delle coperture e le misure approvate
+                                <i class="fa-regular fa-file-lines text-gray-400 ml-2 text-sm" title="Tono: Neutro"></i>
+                            </a>
+                        </div>
+                    </div>
+
+                </div>
+            </article>
+
+            <article class="mb-8 border-b border-gray-200 pb-10 last:border-0">
+                <span class="block text-xs font-bold text-accent-red uppercase tracking-widest mb-2">Guerra in Ucraina</span>
+                <h2 class="font-serif font-bold text-3xl leading-tight mb-6 hover:underline cursor-pointer">
+                    Tensione alle stelle all'ONU: scambio di accuse tra Mosca e Washington
+                </h2>
+
+                <div class="flex flex-col gap-1">
+                     <div class="flex gap-4 py-3 border-b border-gray-100 group">
+                        <div class="w-1 bg-bias-ind shrink-0 self-stretch"></div> <div class="flex-grow">
+                            <div class="flex justify-between items-center mb-1">
+                                <span class="text-[10px] font-bold text-gray-600 uppercase">ANSA</span>
+                                <span class="text-[10px] text-gray-400">5 min fa</span>
+                            </div>
+                            <a href="#" class="font-medium text-base group-hover:text-accent-red">
+                                Zelensky: "Negoziati solo con garanzie reali". Mosca frena.
+                                <i class="fa-solid fa-circle-exclamation text-gray-500 ml-1 text-xs"></i>
+                            </a>
+                        </div>
+                    </div>
+
+                    <div class="flex gap-4 py-3 group">
+                        <div class="w-1 bg-bias-sx shrink-0 self-stretch"></div>
+                        <div class="flex-grow">
+                            <div class="flex justify-between items-center mb-1">
+                                <span class="text-[10px] font-bold text-gray-600 uppercase">Il Manifesto</span>
+                                <span class="text-[10px] text-gray-400">25 min fa</span>
+                            </div>
+                            <a href="#" class="font-medium text-base group-hover:text-accent-red">
+                                L'Europa spinge per il riarmo, la pace si allontana ancora
+                                <i class="fa-solid fa-fire text-red-600 ml-1 text-xs"></i>
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </article>
+
+        </main>
+
+        <aside class="lg:col-span-4 bg-gray-50 p-6 md:p-8 border-l border-gray-100">
+            
+            <div class="border-b-2 border-black mb-6 pb-2">
+                <h3 class="font-serif font-bold text-xl uppercase tracking-wider">Ultim'ora & Sport</h3>
+            </div>
+
+            <div class="mb-8">
+                <span class="text-[10px] font-bold text-gray-500 uppercase tracking-wider block mb-1">Serie A</span>
+                <h4 class="font-serif font-bold text-xl leading-tight mb-3">Fiorentina - Udinese 5-1</h4>
+                
+                <ul class="space-y-3">
+                    <li class="flex gap-3 group">
+                        <div class="w-1 bg-bias-cx h-full"></div>
+                        <div>
+                            <span class="text-[10px] font-bold text-gray-500 block">Gazzetta</span>
+                            <a href="#" class="text-sm font-medium leading-snug group-hover:text-accent-red">
+                                Viola show, Kean ne fa due! <i class="fa-solid fa-face-smile text-green-600"></i>
+                            </a>
+                        </div>
+                    </li>
+                    <li class="flex gap-3 group">
+                        <div class="w-1 bg-bias-ind h-full"></div>
+                        <div>
+                            <span class="text-[10px] font-bold text-gray-500 block">TuttoSport</span>
+                            <a href="#" class="text-sm font-medium leading-snug group-hover:text-accent-red">
+                                Udinese non pervenuta al Franchi
+                            </a>
+                        </div>
+                    </li>
+                </ul>
+            </div>
+
+            <hr class="border-gray-200 my-6">
+
+            <div class="mb-8">
+                <span class="text-[10px] font-bold text-gray-500 uppercase tracking-wider block mb-1">Cronaca / Salerno</span>
+                <h4 class="font-serif font-bold text-xl leading-tight mb-3">Tragedia a Cava de' Tirreni</h4>
+                
+                <ul class="space-y-3">
+                    <li class="flex gap-3 group">
+                        <div class="w-1 bg-bias-ind h-full"></div>
+                        <div>
+                            <span class="text-[10px] font-bold text-gray-500 block">Il Mattino</span>
+                            <a href="#" class="text-sm font-medium leading-snug group-hover:text-accent-red">
+                                Uccide la compagna e si lancia nel vuoto: la ricostruzione <i class="fa-solid fa-face-frown text-orange-500"></i>
+                            </a>
+                        </div>
+                    </li>
+                    <li class="flex gap-3 group">
+                        <div class="w-1 bg-bias-cx h-full"></div>
+                        <div>
+                            <span class="text-[10px] font-bold text-gray-500 block">Fanpage</span>
+                            <a href="#" class="text-sm font-medium leading-snug group-hover:text-accent-red">
+                                Chi erano Diego e Anna, i dettagli shock
+                            </a>
+                        </div>
+                    </li>
+                </ul>
+            </div>
+
+            <div class="bg-white border border-gray-200 p-6 text-center mt-10 shadow-sm">
+                <i class="fa-regular fa-envelope text-3xl text-gray-400 mb-3"></i>
+                <h5 class="font-serif font-bold text-lg mb-2">Resta Aggiornato</h5>
+                <p class="text-xs text-gray-500 mb-4">Ricevi le notizie top del giorno ogni mattina alle 7:00.</p>
+                <button class="bg-black text-white text-xs font-bold uppercase py-3 px-6 w-full hover:bg-accent-red transition-colors">Iscriviti Ora</button>
+            </div>
+
+        </aside>
+
+    </div>
+
+    <footer class="bg-white border-t border-gray-200 py-10 mt-10">
+        <div class="max-w-screen-xl mx-auto px-4 text-center">
+            <h2 class="font-serif font-bold text-2xl uppercase tracking-tighter mb-4">Sfoglia la Notizia</h2>
+            <div class="text-xs text-gray-500 font-medium">
+                &copy; 2025 Raffaele P. Guidi - Tutti i diritti riservati.<br>
+                Aggregatore automatico di notizie con analisi del sentiment e orientamento politico.
+            </div>
+        </div>
+    </footer>
+
+</body>
+</html>

@@ -1,0 +1,16 @@
+services:
+  www:
+    image: raffaeleguidi/sfoglialanotizia:v2
+    restart: always
+    ports:
+      - "3000:3000"
+    volumes:
+      - ./data:/usr/src/app/data
+  loader:
+    image: raffaeleguidi/sfoglialanotizia:v2
+    restart: always
+    ports:
+      - "3000:3000"
+    volumes:
+      - ./data:/usr/src/app/data
+    command: /usr/src/app/bin/load

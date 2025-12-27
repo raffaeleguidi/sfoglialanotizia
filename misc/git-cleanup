@@ -1,0 +1,15 @@
+git filter-branch --force --index-filter \
+  "git rm --cached --ignore-unmatch 'loadTest'" \
+  --prune-empty --tag-name-filter cat -- --all
+
+git filter-branch --force --index-filter \
+  "git rm --cached --ignore-unmatch 'bin/loadTest'" \
+  --prune-empty --tag-name-filter cat -- --all
+  
+git log -- ./bin/loadTest
+git log -- ./loadTest
+
+
+git push origin master --force
+
+git push origin master --force --tags

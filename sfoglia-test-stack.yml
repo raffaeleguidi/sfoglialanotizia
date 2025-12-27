@@ -1,0 +1,41 @@
+version: '3.3'
+services:
+  loader:
+    image: raffaeleguidi/sfoglialanotizia:test
+    command:
+     - node
+     - bin/load
+    volumes:
+     - /mnt/gluster-1/sfoglia-test-data:/usr/src/app/data
+    networks:
+     - default
+    logging:
+      driver: json-file
+    deploy:
+      placement:
+        constraints:
+         - node.labels.gluster == true
+  web:
+    image: raffaeleguidi/sfoglialanotizia:test
+    volumes:
+     - /mnt/gluster-1/sfoglia-test-data:/usr/src/app/data
+    networks:
+     - default
+     - traefik-public
+    logging:
+      driver: json-file
+    deploy:
+      replicas: 2
+      labels:
+        traefik.constraint-label: traefik-public
+        traefik.enable: 'true'
+        traefik.http.routers.sfoglia-test.rule: Host(`sfoglia-test.casaguidi.net`)
+        traefik.http.services.sfoglia-test.loadbalancer.server.port: '3000'
+      placement:
+        constraints:
+         - node.labels.gluster == true
+networks:
+  default:
+    driver: overlay
+  traefik-public:
+    external: true

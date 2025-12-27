@@ -1,0 +1,60 @@
+/*
+
+                         <title>La Repubblica</title>
+                         <homePage>http://www.repubblica.it/</homePage>
+                         <category>Sinistra</category>
+
+                         <title>Corriere della Sera</title>
+                         <homePage>http://www.corriere.it/</homePage>
+                         <rssUrl>http://xml.corriereobjects.it/rss/homepage.xml</rssUrl>
+                         <category>Centro</category>
+
+                         <title>Il Manifesto</title>
+                         <homePage>http://www.ilmanifesto.it/</homePage>
+                         <rssUrl>http://www.ilmanifesto.it/fileadmin/rss/ilmanifesto_prima.xml</rssUrl>
+                         <category>Sinistra</category>
+
+
+                         <title>Il Fatto quotidiano</title>
+                         <homePage>http://www.ilfattoquotidiano.it/</homePage>
+                         <rssUrl>http://www.ilfattoquotidiano.it/feed/</rssUrl>
+                         <category>Centro</category>
+
+                        <homePage>http://www.libero-news.it/</homePage>
+                         <rssUrl>http://www.libero-news.it/rss.jsp</rssUrl>
+                         <category>Destra</category>
+
+                        <title>Il Secolo XIX</title>
+                         <homePage>http://www.ilsecoloxix.it/</homePage>
+                         <rssUrl>http://www.ilsecoloxix.it/homepage/rss/homepage.xml</rssUrl>
+                         <category>Centro</category>
+
+                         <title>Il Foglio</title>
+                         <homePage>http://www.ilfoglio.it/</homePage>
+                         <rssUrl>http://feeds.ilfoglio.it/ilfoglio_generale?format=xml</rssUrl>
+                         <category>Destra</category>
+
+                         <title>La Stampa</title>
+                         <homePage>http://www.lastampa.it/</homePage>
+                         <rssUrl>http://www.lastampa.it/redazione/rss_home.xml</rssUrl>
+                         <category>Sinistra</category>
+
+                         <title>Il Giornale</title>
+                         <homePage>http://www.ilgiornale.it/</homePage>
+                         <rssUrl>http://rss.feedsportal.com/c/32314/f/440274/index.rss</rssUrl>
+                         <category>Destra</category>
+                 </newspaper>
+                <newspaper>
+                         <title>Il Messaggero</title>
+                         <homePage>http://www.ilmessaggero.it/</homePage>
+                         <rssUrl>http://www.ilmessaggero.it/rss/home.xml</rssUrl>
+                         <category>Centro</category>
+                 </newspaper>
+                <newspaper>
+                         <title>L'Unità</title>
+                         <homePage>http://www.unita.it/</homePage>
+                         <rssUrl>http://www.unita.it/cmlink/feed-homepage-1.244567</rssUrl>
+                         <category>Sinistra</category>
+                 </newspaper>
+
+*/

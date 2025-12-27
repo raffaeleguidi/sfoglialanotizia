@@ -1,0 +1,8 @@
+[
+    { "name": "Corriere Della Sera", "url": "https://xml2.corriereobjects.it/feed-hp/homepage.xml", "encoding": "utf-8", "label": "center" },
+    { "name": "Il Messaggero", "url": "http://www.ilmessaggero.it/rss/home.xml", "encoding": "latin1", "label": "center" },
+    { "name": "La Repubblica", "url": "http://www.repubblica.it/rss/homepage/rss2.0.xml", "label": "left" },
+    { "name": "Il Giornale","url": "http://www.ilgiornale.it/feed.xml", "label": "right" },
+    { "name": "Il Mattino", "url": "http://www.ilmattino.it/rss/home.xml", "encoding": "latin1", "label": "center" },
+    { "name": "Il Sole 24 Ore", "url": "http://www.ilsole24ore.com/rss/primapagina.xml", "label": "finance" }
+]
