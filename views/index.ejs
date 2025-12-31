@@ -1,152 +1,253 @@
 <!DOCTYPE html>
-<html>
-  <head>
+<html lang="it">
+<head>
     <title><%= title %></title>
-    <link rel='stylesheet' href='/stylesheets/style.css' />
-    <script
-        src="https://code.jquery.com/jquery-3.2.1.slim.min.js"
-        integrity="sha256-k2WSCIexGzOj3Euiig+TlR8gA0EmPjuc79OEeY5L45g="
-        crossorigin="anonymous"></script>
-        <script>
-            function findPos(obj) {
-                var curtop = 0;
-                if (obj.offsetParent) {
-                    do {
-                        curtop += obj.offsetTop;
-                    } while (obj = obj.offsetParent);
-                return [curtop];
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Libre+Franklin:wght@400;500;600;700&family=Playfair+Display:ital,wght@0,700;0,900;1,700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+    <script src="https://cdn.tailwindcss.com"></script>
+
+    <script src="https://code.jquery.com/jquery-3.2.1.slim.min.js" integrity="sha256-k2WSCIexGzOj3Euiig+TlR8gA0EmPjuc79OEeY5L45g=" crossorigin="anonymous"></script>
+
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        serif: ['"Playfair Display"', 'serif'],
+                        sans: ['"Libre Franklin"', 'sans-serif'],
+                    },
+                    colors: {
+                        'paper-bg': '#f9f9f9',
+                        'news-black': '#111111',
+                        'accent-red': '#cc0000',
+                        /* Mappatura Label originali su colori */
+                        'bias-sx': '#d32f2f',  /* Sinistra */
+                        'bias-dx': '#1565c0',  /* Destra */
+                        'bias-cx': '#2e7d32',  /* Centro */
+                        'bias-ind': '#7b1fa2', /* Indipendente */
+                        'bias-default': '#666666'
+                    }
                 }
             }
+        }
+    </script>
 
-            $( document ).ready(function() {
-                $("img.picture").click(function(e){
-                    if ($(e.target).hasClass("zoom")) {
-                        window.location.hash = $(e.target).attr("data-hash");                        
-                        $(e.target).removeClass("zoom");
-                    } else {
-                        $(".zoom").removeClass("zoom");
-                        $(e.target).addClass("zoom");
-                        window.location.hash = "#zoom";  
-                        window.scrollTo(0, $(e.target).offset().top - 50);           
+    <script>
+        function timerIncrement() {
+            idleTime = idleTime + 1;
+            if (idleTime > 10) { // 20 minutes (come da commento originale, anche se codice dice > 10)
+                window.location.reload();
+            }
+        }            
+        var idleTime = 0;
+        $(document).ready(function () {
+            var idleInterval = setInterval(timerIncrement, 60000); // 1 minute
+            $(this).mousemove(function (e) { idleTime = 0; });
+            $(this).keypress(function (e) { idleTime = 0; });
+        });
+    </script>
+
+    <% 
+    function getSentimentIcon(vote) {
+        if(vote == 'positive' || vote == 'pos') return '<i class="fa-solid fa-face-smile text-green-600"></i>';
+        if(vote == 'neutral' || vote == 'neg') return '<i class="fa-solid fa-face-meh text-gray-400"></i>';
+        if(vote == 'negative' || vote == 'ang') return '<i class="fa-solid fa-face-frown text-orange-600"></i>';
+        return '<i class="fa-regular fa-file-lines text-gray-400"></i>'; // Neutro/Default
+    }
+    
+    // Helper per gestire classi colori dinamiche in base alla label
+    function getBiasColor(label) {
+        // Assicurati che le label nel DB corrispondano a queste chiavi o aggiungi le tue
+        var map = {
+            'sx': 'bias-sx', 'left': 'bias-sx',
+            'dx': 'bias-dx', 'right': 'bias-dx',
+            'cx': 'bias-cx', 'center': 'bias-cx',
+            'ind': 'bias-ind', 'finance': 'bias-ind'
+        };
+        return map[label] || 'bias-default';
+    }
+    %>
+</head>
+
+<body class="bg-paper-bg text-news-black font-sans antialiased selection:bg-accent-red selection:text-white">
+
+    <div class="bg-gray-100 border-b border-gray-300 py-2 text-[10px] md:text-xs font-bold uppercase tracking-wider text-gray-600">
+        <div class="max-w-screen-xl mx-auto px-4 flex flex-col md:flex-row justify-between items-center gap-2">
+            <div class="flex items-center gap-3 w-full md:w-auto justify-center md:justify-start">
+                <span class="text-gray-400 hidden md:inline">Orientamento:</span>
+                <span class="flex items-center gap-1"><span class="block w-2 h-2 rounded-full bg-bias-sx"></span> SX</span>
+                <span class="flex items-center gap-1"><span class="block w-2 h-2 rounded-full bg-bias-cx"></span> CX</span>
+                <span class="flex items-center gap-1"><span class="block w-2 h-2 rounded-full bg-bias-dx"></span> DX</span>
+                <span class="flex items-center gap-1"><span class="block w-2 h-2 rounded-full bg-bias-ind"></span> IND</span>
+            </div>
+            <div class="hidden md:block text-gray-500 font-normal normal-case">
+                <%-moment().locale("it").format("LL [h]HH:mm")%> - agg. <%-moment(status.lastUpdate).locale("it").fromNow()%>
+            </div>
+            <div class="flex items-center gap-3 w-full md:w-auto justify-center md:justify-end">
+                <span class="text-gray-400 hidden md:inline">Sentiment:</span>
+                <span class="flex items-center gap-1"><i class="fa-solid fa-face-smile text-green-600"></i> Positivo</span>
+                <span class="flex items-center gap-1"><i class="fa-solid fa-face-meh text-gray-400"></i> Neutrale</span>
+                <span class="flex items-center gap-1"><i class="fa-solid fa-face-frown text-orange-400"></i> Negativo</span>
+            </div>
+        </div>
+    </div>
+
+    <header class="bg-white pt-8 pb-6 border-b-4 border-black text-center px-4">
+        <a href="/" class="no-underline text-black">
+            <h1 class="font-serif font-black text-5xl md:text-7xl uppercase tracking-tighter leading-none mb-2">
+                Sfoglia la Notizia
+            </h1>
+        </a>
+    </header>
+
+    <div class="max-w-screen-xl mx-auto bg-white shadow-xl min-h-screen grid grid-cols-1 lg:grid-cols-12 mt-6">
+
+        <main class="lg:col-span-8 p-6 md:p-10 border-r border-gray-200">
+
+            <% for(i in articles){
+                var article = articles[i];
+                // LOGICA FILTRO ORIGINALE
+                if (!article.alreadyShown && article.position <= 10) {
+            %>
+
+            <article class="mb-12 border-b border-gray-200 pb-10 last:border-0" id="<%=article.url%>">
+                
+                <span class="block text-xs font-bold text-accent-red uppercase tracking-widest mb-2">
+                    Articolo #<%=article.position%>
+                </span>
+
+                <h2 class="font-serif font-bold text-3xl md:text-4xl leading-tight mb-4 hover:text-accent-red transition-colors">
+                    <a href="<%=article.url%>" title="weight: <%=article.totalWeight%> - sentiment: <%=article.sentiment.vote%>"><%=article.title%></a>
+                </h2>
+
+                <%
+                    var displayImage = null;
+                    // 1. Cerca nelle immagini dell'articolo stesso
+                    for(ii in article.images){
+                        if(article.images[ii]) { displayImage = article.images[ii]; break; }
                     }
-                })
-            });
-
-            function timerIncrement() {
-                idleTime = idleTime + 1;
-                if (idleTime > 10) { // 20 minutes
-                    window.location.reload();
-                }
-            }            
-
-            var idleTime = 0;
-
-            $(document).ready(function () {
-                //Increment the idle time counter every minute.
-                var idleInterval = setInterval(timerIncrement, 60000); // 1 minute
-
-                //Zero the idle timer on mouse movement.
-                $(this).mousemove(function (e) {
-                    idleTime = 0;
-                });
-                $(this).keypress(function (e) {
-                    idleTime = 0;
-                });
-            });
-
-        </script>
-  </head>
-  <body>
-    <table class="main">
-        <tr>
-            <td class="first" colspan="2">
-                <center>
-                    <a href="/"><img class="logo" src="/images/sfoglia2.png" /></a>
-                    <p class="subtitle">
-                        <span class="payoff"><%-moment().locale("it").format("LL [h]HH:mm")%> - ultimo aggiornamento <%-moment(status.lastUpdate).locale("it").fromNow()%></span>
-                    </p>
-                </center>
-             </td>
-        </tr>
-        <%for(i in articles){
-            var article = articles[i];
-            if (!article.alreadyShown && article.position <= 10) {
-        %>
-        <tr>
-            <td colspan="<%=(article.media ? "1" : "2")%>">
-                <a name="<%=article.url%>">
-                    <div class="article article_<%=article.overallPosition%>" id="<%=article.url%>">
-                        <h2 class="title title_<%=article.label%> title_<%=article.overallPosition%>" ><a title="position: <%=article.position%> - total weight: <%=article.totalWeight%> - sentiment: <%=article.sentiment.vote%>, <%=article.sentiment.score%>" href="<%=article.url%>"><%=article.title%></a></h2>
-                    </div>
-                    <div class="summary">
-                       <%
-                          var hasImage = false;
-                          for(ii in article.images){
-                            var image = article.images[ii];
-                            if (image){ hasImage = true;
-                        %>
-                        <img data-hash="<%=article.url%>" class="picture picture_<%=article.overallPosition%>" src="<%=image%>" align="left"/>
-                            <%}
-                        }%>
-                        <%if (!hasImage) for(ii in article.related){
-                            var related = article.related[ii];
-                            var image = corpus[article.related[ii].url].images ? corpus[article.related[ii].url].images : "nessuna"
-                            var title = corpus[article.related[ii].url].title ? corpus[article.related[ii].url].title : "nessuna"
-                            var show = (article.confidence[related.url] > minConf && related.similarity >= minSim)
-                            if (show && image && image != "") {
-                        %>
-                        <img data-hash="<%=article.url%>" class="picture picture_<%=article.overallPosition%>" src="<%=image%>" align="left"/>
-                        <%
+                    // 2. Se non trovata, cerca nei correlati (come faceva il codice originale)
+                    if(!displayImage && article.related) {
+                        for(ii in article.related){
+                            var relImg = corpus[article.related[ii].url].images;
+                            var show = (article.confidence[article.related[ii].url] > minConf && article.related[ii].similarity >= minSim);
+                            if (show && relImg && relImg != "") {
+                                displayImage = relImg;
                                 break;
                             }
-                        }%>
+                        }
+                    }
+                %>
 
-                        <span class="label label_<%=article.label%>">[ <%=article.source%> ]</span> <img class="sentiment sentiment-<%=article.sentiment.vote%>" src="/images/sentiments-<%=article.sentiment.vote%>.png" />
-                        <i><%-moment(article.pubDate).locale("it").fromNow()%></i> <%=(article.description ? "-" : "")%> <%-article.description%> 
-                        <div class="related">
-                            <%for(iii in article.related){
-                                var related = article.related[iii];
-                                if (article.confidence[related.url] > minConf && related.similarity >= minSim){
-                            %>
+                <% if(displayImage) { %>
+                <div class="relative w-full h-64 md:h-96 mb-8 overflow-hidden bg-gray-200 group rounded-sm">
+                    <img src="<%=displayImage%>" class="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105" alt="News Image">
+                </div>
+                <% } %>
 
-                            <div class="related_item">
+                <div class="flex flex-col gap-0 border-t border-gray-100">
 
-                                <span class="label label_<%=corpus[related.url].label%>">[ <%=corpus[related.url].source%> ]</span> 
-                                <a href="<%=related.url%>" title="<%=corpus[related.url].description%>
-    ------------------------
-    published: <%=moment(corpus[related.url].pubDate).fromNow()%> 
-    weight: <%=corpus[related.url].weight%>
-    position: <%=corpus[related.url].position%>
-    similarity: <%=( related.similarity < 1 ? (related.similarity * 100).toFixed(0) : 100) %>%;
-    confidence: <%=article.confidence[related.url]%>;
-    shared words: <%=article.relations[related.url].join(" ")%>
-    sentiment: <%=corpus[related.url].sentiment.vote%>, <%=corpus[related.url].sentiment.score%>
-    ">
-                                
-                                <img class="sentiment sentiment-small sentiment-<%=corpus[related.url].sentiment.vote%>" src="/images/sentiments-<%=corpus[related.url].sentiment.vote%>.png" />
-                                <%=corpus[related.url].title%></a><%if(parseInt(i)+1 < article.related.length){%><br/><%}%>  
+                    <div class="flex items-stretch py-4 border-b border-gray-100 group hover:bg-gray-50 transition-colors">
+                        <div class="w-1.5 bg-<%=getBiasColor(article.label)%> mr-4 shrink-0"></div>
+                        
+                        <div class="flex-grow pr-4">
+                            <div class="flex justify-between items-center mb-1">
+                                <span class="text-[10px] font-bold text-<%=getBiasColor(article.label)%> uppercase tracking-wider">
+                                    [ <%=article.source%> ]
+                                </span>
+                                <span class="text-[10px] text-gray-400 font-medium">
+                                    <%-moment(article.pubDate).locale("it").fromNow()%>
+                                </span>
+                            </div>
+                            <a href="<%=article.url%>" class="block text-lg font-medium leading-snug group-hover:text-accent-red">
+                                <%=(article.description ? article.description : article.title)%>
+                            </a>
                         </div>
-                        <%}}%>
+                        
+                        <div class="flex items-center pl-2 border-l border-gray-100 w-12 justify-center shrink-0 text-lg">
+                            <%- getSentimentIcon(article.sentiment.vote) %>
                         </div>
                     </div>
-                </a>
-            </td>
-        </tr>
-            <%}
-        }%>
-    </table>
-    <div>
-        <center>
-            le nostre fonti:
-            <p>
-            <%for(i in sources){
-                var source = sources[i];
+
+                    <% for(iii in article.related){
+                        var related = article.related[iii];
+                        // LOGICA FILTRO CORRELATI ORIGINALE
+                        if (article.confidence[related.url] > minConf && related.similarity >= minSim){
+                            var relatedData = corpus[related.url];
+                    %>
+                    <div class="flex items-stretch py-4 border-b border-gray-100 group hover:bg-gray-50 transition-colors last:border-0">
+                        <div class="w-1.5 bg-<%=getBiasColor(relatedData.label)%> mr-4 shrink-0"></div>
+                        
+                        <div class="flex-grow pr-4">
+                            <div class="flex justify-between items-center mb-1">
+                                <span class="text-[10px] font-bold text-<%=getBiasColor(relatedData.label)%> uppercase tracking-wider">
+                                    [ <%=relatedData.source%> ]
+                                </span>
+                                <span class="text-[10px] text-gray-400 font-medium">
+                                    <%-moment(relatedData.pubDate).locale("it").fromNow()%>
+                                </span>
+                            </div>
+                            
+                            <a href="<%=related.url%>" 
+                               class="block text-base font-medium leading-snug group-hover:text-accent-red"
+                               title="<%=relatedData.description%>&#013;published: <%=moment(relatedData.pubDate).fromNow()%>&#013;similarity: <%=( related.similarity < 1 ? (related.similarity * 100).toFixed(0) : 100) %>%&#013;sentiment: <%=relatedData.sentiment.vote%>">
+                                <%=relatedData.title%>
+                            </a>
+                        </div>
+
+                        <div class="flex items-center pl-2 border-l border-gray-100 w-12 justify-center shrink-0 text-lg">
+                            <%- getSentimentIcon(relatedData.sentiment.vote) %>
+                        </div>
+                    </div>
+                    <% 
+                        } // End if show related
+                    } // End related loop 
+                    %>
+
+                </div>
+            </article>
+            <% 
+                } // End if article main logic
+            } // End main loop 
             %>
-                <a class="rimando" href="<%=source.url%>"><span class="label label_<%=source.label%>">[ <%=source.name%> ]</span></a>
-            <%}%>
-            </p>
-            <p>Sfoglia la Notizia - &copy; 2011-<%-moment().format("YYYY")%> Raffaele P. Guidi</p>
-        </center>
+
+        </main>
+
+        <aside class="lg:col-span-4 bg-gray-50 p-6 md:p-8 border-l border-gray-100 flex flex-col justify-between">
+            <div>
+                <div class="border-b-2 border-black mb-6 pb-2">
+                    <h3 class="font-serif font-bold text-xl uppercase tracking-wider">Le Nostre Fonti</h3>
+                </div>
+
+                <div class="flex flex-wrap gap-2">
+                    <% for(i in sources){
+                        var source = sources[i];
+                    %>
+                    <a href="<%=source.url%>" class="inline-block bg-white border border-gray-200 px-3 py-1 text-xs font-bold uppercase text-gray-600 hover:text-white hover:bg-<%=getBiasColor(source.label)%> hover:border-<%=getBiasColor(source.label)%> transition-all rounded-full shadow-sm">
+                        <%=source.name%>
+                    </a>
+                    <% } %>
+                </div>
+
+                <div class="bg-white border border-gray-200 p-6 text-center mt-10 shadow-sm rounded-lg">
+                    <i class="fa-regular fa-newspaper text-3xl text-gray-400 mb-3"></i>
+                    <h5 class="font-serif font-bold text-lg mb-2">Resta Aggiornato</h5>
+                    <p class="text-xs text-gray-500 mb-4">Unisciti agli altri lettori di Sfoglia la Notizia.</p>
+                    <!-- <button class="bg-black text-white text-xs font-bold uppercase py-3 px-6 w-full hover:bg-accent-red transition-colors rounded">Iscriviti</button> -->
+                </div>
+            </div>
+
+            <div class="text-center mt-10 pt-10 border-t border-gray-200 text-xs text-gray-500">
+                <p>&copy; 2011-<%-moment().format("YYYY")%> Raffaele P. Guidi</p>
+                <p class="mt-2">Sfoglia la Notizia</p>
+            </div>
+        </aside>
+
     </div>
-  </body>
+</body>
 </html>

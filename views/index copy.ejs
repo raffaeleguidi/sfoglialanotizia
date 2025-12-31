@@ -1,0 +1,152 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title><%= title %></title>
+    <link rel='stylesheet' href='/stylesheets/style.css' />
+    <script
+        src="https://code.jquery.com/jquery-3.2.1.slim.min.js"
+        integrity="sha256-k2WSCIexGzOj3Euiig+TlR8gA0EmPjuc79OEeY5L45g="
+        crossorigin="anonymous"></script>
+        <script>
+            function findPos(obj) {
+                var curtop = 0;
+                if (obj.offsetParent) {
+                    do {
+                        curtop += obj.offsetTop;
+                    } while (obj = obj.offsetParent);
+                return [curtop];
+                }
+            }
+
+            $( document ).ready(function() {
+                $("img.picture").click(function(e){
+                    if ($(e.target).hasClass("zoom")) {
+                        window.location.hash = $(e.target).attr("data-hash");                        
+                        $(e.target).removeClass("zoom");
+                    } else {
+                        $(".zoom").removeClass("zoom");
+                        $(e.target).addClass("zoom");
+                        window.location.hash = "#zoom";  
+                        window.scrollTo(0, $(e.target).offset().top - 50);           
+                    }
+                })
+            });
+
+            function timerIncrement() {
+                idleTime = idleTime + 1;
+                if (idleTime > 10) { // 20 minutes
+                    window.location.reload();
+                }
+            }            
+
+            var idleTime = 0;
+
+            $(document).ready(function () {
+                //Increment the idle time counter every minute.
+                var idleInterval = setInterval(timerIncrement, 60000); // 1 minute
+
+                //Zero the idle timer on mouse movement.
+                $(this).mousemove(function (e) {
+                    idleTime = 0;
+                });
+                $(this).keypress(function (e) {
+                    idleTime = 0;
+                });
+            });
+
+        </script>
+  </head>
+  <body>
+    <table class="main">
+        <tr>
+            <td class="first" colspan="2">
+                <center>
+                    <a href="/"><img class="logo" src="/images/sfoglia2.png" /></a>
+                    <p class="subtitle">
+                        <span class="payoff"><%-moment().locale("it").format("LL [h]HH:mm")%> - ultimo aggiornamento <%-moment(status.lastUpdate).locale("it").fromNow()%></span>
+                    </p>
+                </center>
+             </td>
+        </tr>
+        <%for(i in articles){
+            var article = articles[i];
+            if (!article.alreadyShown && article.position <= 10) {
+        %>
+        <tr>
+            <td colspan="<%=(article.media ? "1" : "2")%>">
+                <a name="<%=article.url%>">
+                    <div class="article article_<%=article.overallPosition%>" id="<%=article.url%>">
+                        <h2 class="title title_<%=article.label%> title_<%=article.overallPosition%>" ><a title="position: <%=article.position%> - total weight: <%=article.totalWeight%> - sentiment: <%=article.sentiment.vote%>, <%=article.sentiment.score%>" href="<%=article.url%>"><%=article.title%></a></h2>
+                    </div>
+                    <div class="summary">
+                       <%
+                          var hasImage = false;
+                          for(ii in article.images){
+                            var image = article.images[ii];
+                            if (image){ hasImage = true;
+                        %>
+                        <img data-hash="<%=article.url%>" class="picture picture_<%=article.overallPosition%>" src="<%=image%>" align="left"/>
+                            <%}
+                        }%>
+                        <%if (!hasImage) for(ii in article.related){
+                            var related = article.related[ii];
+                            var image = corpus[article.related[ii].url].images ? corpus[article.related[ii].url].images : "nessuna"
+                            var title = corpus[article.related[ii].url].title ? corpus[article.related[ii].url].title : "nessuna"
+                            var show = (article.confidence[related.url] > minConf && related.similarity >= minSim)
+                            if (show && image && image != "") {
+                        %>
+                        <img data-hash="<%=article.url%>" class="picture picture_<%=article.overallPosition%>" src="<%=image%>" align="left"/>
+                        <%
+                                break;
+                            }
+                        }%>
+
+                        <span class="label label_<%=article.label%>">[ <%=article.source%> ]</span> <img class="sentiment sentiment-<%=article.sentiment.vote%>" src="/images/sentiments-<%=article.sentiment.vote%>.png" />
+                        <i><%-moment(article.pubDate).locale("it").fromNow()%></i> <%=(article.description ? "-" : "")%> <%-article.description%> 
+                        <div class="related">
+                            <%for(iii in article.related){
+                                var related = article.related[iii];
+                                if (article.confidence[related.url] > minConf && related.similarity >= minSim){
+                            %>
+
+                            <div class="related_item">
+
+                                <span class="label label_<%=corpus[related.url].label%>">[ <%=corpus[related.url].source%> ]</span> 
+                                <a href="<%=related.url%>" title="<%=corpus[related.url].description%>
+    ------------------------
+    published: <%=moment(corpus[related.url].pubDate).fromNow()%> 
+    weight: <%=corpus[related.url].weight%>
+    position: <%=corpus[related.url].position%>
+    similarity: <%=( related.similarity < 1 ? (related.similarity * 100).toFixed(0) : 100) %>%;
+    confidence: <%=article.confidence[related.url]%>;
+    shared words: <%=article.relations[related.url].join(" ")%>
+    sentiment: <%=corpus[related.url].sentiment.vote%>, <%=corpus[related.url].sentiment.score%>
+    ">
+                                
+                                <img class="sentiment sentiment-small sentiment-<%=corpus[related.url].sentiment.vote%>" src="/images/sentiments-<%=corpus[related.url].sentiment.vote%>.png" />
+                                <%=corpus[related.url].title%></a><%if(parseInt(i)+1 < article.related.length){%><br/><%}%>  
+                        </div>
+                        <%}}%>
+                        </div>
+                    </div>
+                </a>
+            </td>
+        </tr>
+            <%}
+        }%>
+    </table>
+    <div>
+        <center>
+            le nostre fonti:
+            <p>
+            <%for(i in sources){
+                var source = sources[i];
+            %>
+                <a class="rimando" href="<%=source.url%>"><span class="label label_<%=source.label%>">[ <%=source.name%> ]</span></a>
+            <%}%>
+            </p>
+            <p>Sfoglia la Notizia - &copy; 2011-<%-moment().format("YYYY")%> Raffaele P. Guidi</p>
+        </center>
+    </div>
+  </body>
+</html>
