@@ -107,7 +107,7 @@
 
     <div class="max-w-screen-xl mx-auto bg-white shadow-xl min-h-screen grid grid-cols-1 lg:grid-cols-12 mt-6">
 
-        <main class="lg:col-span-8 p-6 md:p-10 border-r border-gray-200">
+        <main class="lg:col-span-12 p-6 md:p-10 border-r border-gray-200">
 
             <% for(i in articles){
                 var article = articles[i];
@@ -117,8 +117,8 @@
 
             <article class="mb-12 border-b border-gray-200 pb-10 last:border-0" id="<%=article.url%>">
                 
-                <span class="block text-xs font-bold text-accent-red uppercase tracking-widest mb-2">
-                    Articolo #<%=article.position%>
+                <span class="bg-<%=getBiasColor(article.label)%> block text-xs font-bold text-white uppercase tracking-widest mb-2">
+                   &nbsp; # <%=article.source%>
                 </span>
 
                 <h2 class="font-serif font-bold text-3xl md:text-4xl leading-tight mb-4 hover:text-accent-red transition-colors">
@@ -150,39 +150,26 @@
                 </div>
                 <% } %>
 
+                <div class="">
+                    <%=article.description%> <%- getSentimentIcon(article.sentiment.vote) %>
+                    <span class="text-[10px] text-gray-400 font-medium">
+                        <%-moment(article.pubDate).locale("it").fromNow()%>
+                    </span>
+                    <div class="py-2"></div>
+                </div>
+                <% 
+                if (article.related && article.related.length > 0) {
+                %>
                 <div class="flex flex-col gap-0 border-t border-gray-100">
-
-                    <div class="flex items-stretch py-4 border-b border-gray-100 group hover:bg-gray-50 transition-colors">
-                        <div class="w-1.5 bg-<%=getBiasColor(article.label)%> mr-4 shrink-0"></div>
-                        
-                        <div class="flex-grow pr-4">
-                            <div class="flex justify-between items-center mb-1">
-                                <span class="text-[10px] font-bold text-<%=getBiasColor(article.label)%> uppercase tracking-wider">
-                                    [ <%=article.source%> ]
-                                </span>
-                                <span class="text-[10px] text-gray-400 font-medium">
-                                    <%-moment(article.pubDate).locale("it").fromNow()%>
-                                </span>
-                            </div>
-                            <a href="<%=article.url%>" class="block text-lg font-medium leading-snug group-hover:text-accent-red">
-                                <%=(article.description ? article.description : article.title)%>
-                            </a>
-                        </div>
-                        
-                        <div class="flex items-center pl-2 border-l border-gray-100 w-12 justify-center shrink-0 text-lg">
-                            <%- getSentimentIcon(article.sentiment.vote) %>
-                        </div>
-                    </div>
 
                     <% for(iii in article.related){
                         var related = article.related[iii];
                         // LOGICA FILTRO CORRELATI ORIGINALE
-                        if (article.confidence[related.url] > minConf && related.similarity >= minSim){
+                        if (article.confidence[related.url] > minConf && related.similarity >= minSim && iii > 0 ){
                             var relatedData = corpus[related.url];
                     %>
                     <div class="flex items-stretch py-4 border-b border-gray-100 group hover:bg-gray-50 transition-colors last:border-0">
                         <div class="w-1.5 bg-<%=getBiasColor(relatedData.label)%> mr-4 shrink-0"></div>
-                        
                         <div class="flex-grow pr-4">
                             <div class="flex justify-between items-center mb-1">
                                 <span class="text-[10px] font-bold text-<%=getBiasColor(relatedData.label)%> uppercase tracking-wider">
@@ -210,6 +197,7 @@
                     %>
 
                 </div>
+                <% } %>
             </article>
             <% 
                 } // End if article main logic
@@ -218,7 +206,7 @@
 
         </main>
 
-        <aside class="lg:col-span-4 bg-gray-50 p-6 md:p-8 border-l border-gray-100 flex flex-col justify-between">
+        <!-- <aside class="lg:col-span-4 bg-gray-50 p-6 md:p-8 border-l border-gray-100 flex flex-col justify-between">
             <div>
                 <div class="border-b-2 border-black mb-6 pb-2">
                     <h3 class="font-serif font-bold text-xl uppercase tracking-wider">Le Nostre Fonti</h3>
@@ -246,7 +234,7 @@
                 <p>&copy; 2011-<%-moment().format("YYYY")%> Raffaele P. Guidi</p>
                 <p class="mt-2">Sfoglia la Notizia</p>
             </div>
-        </aside>
+        </aside> -->
 
     </div>
 </body>
