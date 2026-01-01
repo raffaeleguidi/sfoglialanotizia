@@ -1,6 +1,6 @@
 services:
   www:
-    image: raffaeleguidi/sfoglialanotizia:v3
+    image: raffaeleguidi/sfoglialanotizia:v5
     build: .
     restart: always
     ports:
