@@ -106,14 +106,13 @@
 
         <main class="lg:col-span-12 p-6 md:p-10 border-r border-gray-200">
 
-            <% for(i in articles){
+            <% 
+            var visibleCount = 0;
+            for(i in articles){
                 var article = articles[i];
                 if (!article.alreadyShown && article.position <= 10) {
-            %>
-
-            <article class="mb-12 border-b border-gray-200 pb-10 last:border-0" id="<%=article.url%>">
-                
-                <%
+                    
+                    // Logica recupero immagine
                     var displayImage = null;
                     for(ii in article.images){
                         if(article.images[ii]) { displayImage = article.images[ii]; break; }
@@ -128,75 +127,111 @@
                             }
                         }
                     }
-                %>
+            %>
 
-                <div class="flex flex-col md:flex-row gap-8 items-start">
+            <article class="mb-12 border-b border-gray-200 pb-10 last:border-0" id="<%=article.url%>">
+                
+                <% if (visibleCount === 0) { %>
                     
+                    <span class="bg-<%=getBiasColor(article.label)%> inline-block px-2 py-0.5 text-[10px] font-bold text-white uppercase tracking-widest mb-2 rounded-sm">
+                        # <%=article.source%>
+                    </span>
+
+                    <h2 class="font-serif font-bold text-4xl md:text-5xl leading-tight mb-6 hover:text-accent-red transition-colors">
+                        <a href="<%=article.url%>"><%=article.title%></a>
+                    </h2>
+
                     <% if(displayImage) { %>
-                    <div class="w-full md:w-1/3 shrink-0">
-                        <div class="relative w-full overflow-hidden bg-gray-100 group rounded-sm shadow-sm">
-                            <img src="<%=displayImage%>" class="w-full h-auto transition-transform duration-700 group-hover:scale-105" alt="News Image">
-                        </div>
+                    <div class="w-full mb-6 bg-gray-100 rounded-sm overflow-hidden">
+                        <img src="<%=displayImage%>" class="w-full h-auto" alt="News Image">
                     </div>
                     <% } %>
 
-                    <div class="flex-grow">
-                        
-                        <span class="bg-<%=getBiasColor(article.label)%> inline-block px-2 py-0.5 text-[10px] font-bold text-white uppercase tracking-widest mb-2 rounded-sm">
-                           # <%=article.source%>
+                    <div class="text-lg text-gray-700 leading-relaxed mb-4">
+                        <%-article.description%> 
+                        <span class="block mt-1 text-xs text-gray-400 font-medium uppercase">
+                            <%-moment(article.pubDate).locale("it").fromNow()%>&nbsp;&nbsp;<%- getSentimentIcon(article.sentiment.vote) %>
+                            <!-- <%- getSentimentIcon(article.sentiment.vote) %>&nbsp;&nbsp;<%-moment(article.pubDate).locale("it").fromNow()%> -->
                         </span>
+                    </div>
 
-                        <h2 class="font-serif font-bold text-2xl md:text-3xl leading-tight mb-3 hover:text-accent-red transition-colors">
-                            <a href="<%=article.url%>" title="weight: <%=article.totalWeight%> - sentiment: <%=article.sentiment.vote%>"><%=article.title%></a>
-                        </h2>
+                <% } else { %>
 
-                        <div class="text-base text-gray-700 leading-relaxed mb-3">
-                            <%-article.description%> 
-                            <span class="inline-block ml-2"><%- getSentimentIcon(article.sentiment.vote) %></span>
-                            <span class="block mt-1 text-[11px] text-gray-400 font-medium uppercase">
-                                <%-moment(article.pubDate).locale("it").fromNow()%>
-                            </span>
-                        </div>
-
-                        <% if (article.related && article.related.length > 0) { %>
-                            <div class="flex flex-col gap-0 border-t border-gray-100 mt-4 pt-2">
-                                <% for(iii in article.related){
-                                    var related = article.related[iii];
-                                    if (article.confidence[related.url] > minConf && related.similarity >= minSim && iii > 0 ){
-                                        var relatedData = corpus[related.url];
-                                %>
-                                <div class="flex items-stretch py-3 border-b border-gray-100 group hover:bg-gray-50 transition-colors last:border-0">
-                                    <div class="w-1 bg-<%=getBiasColor(relatedData.label)%> mr-3 shrink-0"></div>
-                                    <div class="flex-grow pr-2">
-                                        <div class="flex justify-between items-center mb-1">
-                                            <span class="text-[9px] font-bold text-<%=getBiasColor(relatedData.label)%> uppercase tracking-wider">
-                                                [ <%=relatedData.source%> ]
-                                            </span>
-                                            <span class="text-[9px] text-gray-400 font-medium">
-                                                <%-moment(relatedData.pubDate).locale("it").fromNow()%>
-                                            </span>
-                                        </div>
-                                        
-                                        <a href="<%=related.url%>" 
-                                        class="block text-sm font-medium leading-snug group-hover:text-accent-red"
-                                        title="<%=relatedData.description%>">
-                                            <%=relatedData.title%>
-                                        </a>
-                                    </div>
-
-                                    <div class="flex items-center pl-2 border-l border-gray-100 w-10 justify-center shrink-0 text-base">
-                                        <%- getSentimentIcon(relatedData.sentiment.vote) %>
-                                    </div>
-                                </div>
-                                <% 
-                                    } // End if show related
-                                } // End related loop 
-                                %>
+                    <div class="flex flex-col md:flex-row gap-8 items-start">
+                        
+                        <% if(displayImage) { %>
+                        <div class="w-full md:w-1/3 shrink-0">
+                            <div class="w-full bg-gray-100 rounded-sm overflow-hidden">
+                                <img src="<%=displayImage%>" class="w-full h-auto transition-transform duration-700 hover:opacity-90" alt="News Image">
                             </div>
+                        </div>
                         <% } %>
 
-                    </div> </div> </article>
+                        <div class="flex-grow">
+                            
+                            <span class="bg-<%=getBiasColor(article.label)%> inline-block px-2 py-0.5 text-[10px] font-bold text-white uppercase tracking-widest mb-2 rounded-sm">
+                                <%=article.source%>
+                            </span>
+
+                            <h2 class="font-serif font-bold text-2xl md:text-3xl leading-tight mb-3 hover:text-accent-red transition-colors">
+                                <a href="<%=article.url%>"><%=article.title%></a>
+                            </h2>
+
+                            <div class="text-base text-gray-700 leading-relaxed mb-3">
+                                <%-article.description%> 
+                                <p>
+                                <span class="block mt-1 text-[11px] text-gray-400 font-medium uppercase">
+                                   <%-moment(article.pubDate).locale("it").fromNow()%>&nbsp;&nbsp;<%- getSentimentIcon(article.sentiment.vote) %>
+                                </span>                                    
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+
+                <% } %>
+
+                <% if (article.related && article.related.length > 0) { %>
+                    <!-- <div class="flex flex-col gap-0 border-t border-gray-100 <%= (visibleCount === 0) ? 'mt-6' : 'mt-4 md:ml-[calc(33.333%+2rem)]' %> pt-2"> -->
+                    <div class="flex flex-col gap-0 border-t border-gray-100 <%= (visibleCount === 0) ? 'mt-6' : 'mt-4' %> pt-2">
+                        <% for(iii in article.related){
+                            var related = article.related[iii];
+                            if (article.confidence[related.url] > minConf && related.similarity >= minSim && iii > 0 ){
+                                var relatedData = corpus[related.url];
+                        %>
+                        <div class="flex items-stretch py-3 border-b border-gray-100 group hover:bg-gray-50 transition-colors last:border-0">
+                            <div class="w-1 bg-<%=getBiasColor(relatedData.label)%> mr-3 shrink-0"></div>
+                            <div class="flex-grow pr-2">
+                                <div class="flex justify-between items-center mb-1">
+                                    <span class="text-[9px] font-bold text-<%=getBiasColor(relatedData.label)%> uppercase tracking-wider">
+                                        [ <%=relatedData.source%> ]
+                                    </span>
+                                </div>
+                                
+                                <a href="<%=related.url%>" 
+                                class="block text-sm font-medium leading-snug group-hover:text-accent-red"
+                                title="<%=relatedData.description%>">
+                                    <%=relatedData.title%>
+                                </a>
+                                    <div class="text-right text-[9px] text-gray-400 font-medium">
+                                        <%-moment(relatedData.pubDate).locale("it").fromNow()%>
+                                    </div>
+                            </div>
+
+                            <div class="flex items-center pl-2 border-l border-gray-100 w-10 justify-center shrink-0 text-base">
+                                <%- getSentimentIcon(relatedData.sentiment.vote) %>
+                            </div>
+                        </div>
+                        <% 
+                            } 
+                        } 
+                        %>
+                    </div>
+                <% } %>
+
+            </article>
+
             <% 
+                visibleCount++; // Incremento contatore
                 } // End if article main logic
             } // End main loop 
             %>
