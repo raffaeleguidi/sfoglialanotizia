@@ -94,12 +94,10 @@
         }
     }
 
-    // MODIFICA: Slice a 7 invece che 5
     var trendingTopics = Object.keys(wordCounts).sort(function(a, b) {
         return wordCounts[b] - wordCounts[a];
     }).slice(0, 7);
 
-    // Fallback esteso a 7 items
     if (trendingTopics.length === 0) trendingTopics = ["Politica", "Cronaca", "Mondo", "Economia", "Sport", "Tech", "Cultura"];
     %>
 </head>
@@ -190,11 +188,17 @@
                 var article = articles[i];
                 if (!article.alreadyShown && article.position <= 10) {
                     
-                    // --- MODIFICA: RACCOLTA TITOLI CORRELATI PER RICERCA ---
+                    // --- CORREZIONE: INDICIZIAMO SOLO I CORRELATI VISIBILI ---
                     var relatedTitles = "";
                     if (article.related) {
-                        // Mappa i correlati e prendi i titoli dal corpus globale
-                        relatedTitles = article.related.map(function(r) {
+                        // Usiamo filter per replicare ESATTAMENTE la logica di visualizzazione HTML
+                        // (iii > 0, confidence > minConf, similarity >= minSim)
+                        relatedTitles = article.related.filter(function(r, index) {
+                            var isVisible = (index > 0) && 
+                                          (article.confidence[r.url] > minConf) && 
+                                          (r.similarity >= minSim);
+                            return isVisible;
+                        }).map(function(r) {
                             return corpus[r.url] ? corpus[r.url].title : "";
                         }).join(" ");
                     }
@@ -203,7 +207,7 @@
                         id: article.url,
                         title: article.title,
                         description: article.description,
-                        related: relatedTitles // Aggiungiamo i titoli correlati
+                        related: relatedTitles
                     });
 
                     var displayImage = null;
@@ -230,14 +234,14 @@
                     </div>
 
                     <h2 class="font-serif font-bold text-3xl md:text-5xl leading-tight mb-6 hover:text-accent-red transition-colors">
-                        <a href="<%=article.url%>"><%=article.title%></a>
+                        <a href="<%=article.url%>" class="js-searchable"><%=article.title%></a>
                     </h2>
                     <% if(displayImage) { %>
                     <div class="w-full mb-6 bg-gray-100 rounded-sm overflow-hidden">
                         <img src="<%=displayImage%>" class="w-full h-auto" alt="News Image">
                     </div>
                     <% } %>
-                    <div class="text-lg text-gray-700 leading-relaxed mb-4">
+                    <div class="text-lg text-gray-700 leading-relaxed mb-4 js-searchable">
                         <%-article.description%> 
                         <span class="inline-block ml-2"><%- getSentimentIcon(article.sentiment.vote) %></span>
                         <span class="block mt-1 text-xs text-gray-400 font-medium uppercase">
@@ -266,9 +270,9 @@
                             </div>
 
                             <h2 class="font-serif font-bold text-[26px] md:text-3xl leading-tight mb-3 hover:text-accent-red transition-colors">
-                                <a href="<%=article.url%>"><%=article.title%></a>
+                                <a href="<%=article.url%>" class="js-searchable"><%=article.title%></a>
                             </h2>
-                            <div class="text-base text-gray-700 leading-relaxed mb-3">
+                            <div class="text-base text-gray-700 leading-relaxed mb-3 js-searchable">
                                 <%-article.description%> 
                                 <span class="inline-block ml-2"><%- getSentimentIcon(article.sentiment.vote) %></span>
                                 <span class="block mt-1 text-[11px] text-gray-400 font-medium uppercase">
@@ -297,7 +301,7 @@
                                         <%-moment(relatedData.pubDate).locale("it").fromNow()%>
                                     </span>
                                 </div>
-                                <a href="<%=related.url%>" class="block text-sm font-medium leading-snug group-hover:text-accent-red">
+                                <a href="<%=related.url%>" class="js-searchable block text-sm font-medium leading-snug group-hover:text-accent-red">
                                     <%=relatedData.title%>
                                 </a>
                             </div>
@@ -322,9 +326,9 @@
         const rawData = document.getElementById('search-data-json').textContent;
         const searchData = JSON.parse(rawData);
 
-        // --- MODIFICA: AGGIUNTO 'related' AI CAMPI RICERCA ---
+        // 1. Inizializzazione MiniSearch
         let miniSearch = new MiniSearch({
-            fields: ['title', 'description', 'related'], // Ora cerca anche nei correlati
+            fields: ['title', 'description', 'related'],
             storeFields: ['id'],
             searchOptions: { 
                 boost: { title: 2 }, 
@@ -333,6 +337,7 @@
         });
         miniSearch.addAll(searchData);
 
+        // DOM Elements
         const toggleBtn = document.getElementById('toggleSearchBtn');
         const searchPanel = document.getElementById('searchPanel');
         const closeBtn = document.getElementById('closeSearchBtn');
@@ -342,6 +347,26 @@
         const articlesDOM = document.querySelectorAll('.searchable-article');
         const categoryLinks = document.querySelectorAll('.category-link');
         const mainContainer = document.getElementById('mainContainer');
+
+        // 2. Inizializzazione Testo Originale
+        // Al caricamento, salviamo l'HTML originale di OGNI elemento cercabile (inclusi i link correlati)
+        document.querySelectorAll('.js-searchable').forEach(el => {
+            el.dataset.original = el.innerHTML;
+        });
+
+        // 3. Funzione di Evidenziazione Multi-Parola
+        function highlightText(textHTML, query) {
+            if (!query) return textHTML;
+            
+            const words = query.trim().split(/\s+/).filter(w => w.length > 0);
+            if (words.length === 0) return textHTML;
+
+            const safeWords = words.map(w => w.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'));
+            const pattern = `(${safeWords.join('|')})`;
+            const regex = new RegExp(pattern, 'gi');
+            
+            return textHTML.replace(regex, '<mark class="bg-yellow-200 text-news-black rounded-sm px-0.5">$1</mark>');
+        }
 
         function setPanelState(isOpen) {
             if (isOpen) {
@@ -364,9 +389,20 @@
             let count = 0;
 
             articlesDOM.forEach(art => {
+                // Troviamo TUTTI gli elementi evidenziabili dentro questo articolo
+                const searchableElements = art.querySelectorAll('.js-searchable');
+
                 if (foundIds.has(art.id)) {
                     art.classList.remove('hidden');
                     count++;
+
+                    // Applichiamo l'highlight a titolo, desc e TUTTI i correlati
+                    searchableElements.forEach(el => {
+                        if (el.dataset.original) {
+                            el.innerHTML = highlightText(el.dataset.original, query);
+                        }
+                    });
+
                 } else {
                     art.classList.add('hidden');
                 }
@@ -380,7 +416,18 @@
         function resetSearch() {
             stats.textContent = '';
             noResults.classList.add('hidden');
-            articlesDOM.forEach(art => art.classList.remove('hidden'));
+            
+            articlesDOM.forEach(art => {
+                art.classList.remove('hidden');
+                
+                // Ripristina l'HTML originale usando il dataset
+                const searchableElements = art.querySelectorAll('.js-searchable');
+                searchableElements.forEach(el => {
+                    if (el.dataset.original) {
+                        el.innerHTML = el.dataset.original;
+                    }
+                });
+            });
         }
 
         function updateURL(query) {
@@ -417,9 +464,7 @@
                 e.preventDefault();
                 const term = link.dataset.term;
                 input.value = term;
-                
                 setPanelState(true);
-                
                 performSearch(term);
                 updateURL(term);
             });
