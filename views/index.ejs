@@ -68,7 +68,7 @@
         return map[label] || 'bias-default';
     }
 
-    // --- LOGICA TRENDING TOPICS ---
+    // --- LOGICA TRENDING TOPICS AGGIORNATA ---
     var wordCounts = {};
     var stopWords = [
         "della", "delle", "degli", "nella", "nelle", "negli", "dalle", "dalla", "sulla", "sulle", 
@@ -83,11 +83,14 @@
     for(var i in articles) {
         var art = articles[i];
         var text = (art.title + " " + (art.description || "")).toLowerCase();
-        var matches = text.match(/\b[a-zàèéìòù]{5,}\b/g);
+        
+        // MODIFICA 1: Regex che accetta parole con trattini interni (es. crans-montana)
+        var matches = text.match(/[a-zàèéìòù]+(?:-[a-zàèéìòù]+)*/g);
         
         if (matches) {
             matches.forEach(function(word) {
-                if (stopWords.indexOf(word) === -1) {
+                // Filtriamo parole corte e stop words
+                if (word.length >= 5 && stopWords.indexOf(word) === -1) {
                     wordCounts[word] = (wordCounts[word] || 0) + 1;
                 }
             });
@@ -188,11 +191,9 @@
                 var article = articles[i];
                 if (!article.alreadyShown && article.position <= 10) {
                     
-                    // --- CORREZIONE: INDICIZIAMO SOLO I CORRELATI VISIBILI ---
                     var relatedTitles = "";
                     if (article.related) {
-                        // Usiamo filter per replicare ESATTAMENTE la logica di visualizzazione HTML
-                        // (iii > 0, confidence > minConf, similarity >= minSim)
+                        // FILTERED CORRELATED
                         relatedTitles = article.related.filter(function(r, index) {
                             var isVisible = (index > 0) && 
                                           (article.confidence[r.url] > minConf) && 
@@ -326,10 +327,14 @@
         const rawData = document.getElementById('search-data-json').textContent;
         const searchData = JSON.parse(rawData);
 
-        // 1. Inizializzazione MiniSearch
+        // MODIFICA 2: Configurazione Tokenizer Personalizzato
+        // Il tokenizer di default spacca su ogni carattere non alfanumerico.
+        // Qui definiamo uno splitter che accetta qualsiasi cosa tranne lettere, numeri e TRATTINI.
         let miniSearch = new MiniSearch({
             fields: ['title', 'description', 'related'],
             storeFields: ['id'],
+            // Tokenizza splittando su tutto ciò che NON è lettera, numero o trattino
+            tokenize: (string) => string.split(/[^a-zA-Z0-9àèéìòù-]+/).filter(term => term.length > 0),
             searchOptions: { 
                 boost: { title: 2 }, 
                 prefix: true 
@@ -348,13 +353,12 @@
         const categoryLinks = document.querySelectorAll('.category-link');
         const mainContainer = document.getElementById('mainContainer');
 
-        // 2. Inizializzazione Testo Originale
-        // Al caricamento, salviamo l'HTML originale di OGNI elemento cercabile (inclusi i link correlati)
+        // Init Original Content
         document.querySelectorAll('.js-searchable').forEach(el => {
             el.dataset.original = el.innerHTML;
         });
 
-        // 3. Funzione di Evidenziazione Multi-Parola
+        // Highlight Function
         function highlightText(textHTML, query) {
             if (!query) return textHTML;
             
@@ -389,14 +393,12 @@
             let count = 0;
 
             articlesDOM.forEach(art => {
-                // Troviamo TUTTI gli elementi evidenziabili dentro questo articolo
                 const searchableElements = art.querySelectorAll('.js-searchable');
 
                 if (foundIds.has(art.id)) {
                     art.classList.remove('hidden');
                     count++;
 
-                    // Applichiamo l'highlight a titolo, desc e TUTTI i correlati
                     searchableElements.forEach(el => {
                         if (el.dataset.original) {
                             el.innerHTML = highlightText(el.dataset.original, query);
@@ -419,8 +421,6 @@
             
             articlesDOM.forEach(art => {
                 art.classList.remove('hidden');
-                
-                // Ripristina l'HTML originale usando il dataset
                 const searchableElements = art.querySelectorAll('.js-searchable');
                 searchableElements.forEach(el => {
                     if (el.dataset.original) {
