@@ -1,24 +1,32 @@
 #!/usr/bin/env node
 
-var jsonfile = require('jsonfile')
-var feeds = require('../lib/feeds');
-var every = require('schedule').every;
+const jsonfile = require('jsonfile');
+const feeds = require('../lib/feeds');
 
 feeds.init();
 
-function refresh(){
-    feeds.refresh(function(articles, corpus){
+const refresh = () => {
+    feeds.refresh((articles, corpus) => {
         console.log(new Date(), "refresh loaded", articles.length, "articles");
-    })
-}
+    });
+};
 
 refresh();
 
-const schedule = process.env.EVERY || "5m";
+const intervalStr = process.env.EVERY || "5m";
+let intervalMs = 5 * 60 * 1000; // Default 5m
 
-console.log(new Date(), "scheduling refresh every", schedule);
+if (intervalStr.endsWith('m')) {
+    intervalMs = parseInt(intervalStr) * 60 * 1000;
+} else if (intervalStr.endsWith('s')) {
+    intervalMs = parseInt(intervalStr) * 1000;
+} else if (intervalStr.endsWith('h')) {
+    intervalMs = parseInt(intervalStr) * 60 * 60 * 1000;
+}
 
-every(schedule).do(function() {
+console.log(new Date(), "scheduling refresh every", intervalStr, `(${intervalMs}ms)`);
+
+setInterval(() => {
     refresh();
-});
+}, intervalMs);
 
