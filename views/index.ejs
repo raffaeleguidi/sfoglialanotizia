@@ -42,10 +42,17 @@
             if (idleTime > 10) window.location.reload();
         }            
         var idleTime = 0;
+        var hasLostFocus = false;
+
         $(document).ready(function () {
             var idleInterval = setInterval(timerIncrement, 60000); 
             $(this).mousemove(function (e) { idleTime = 0; });
             $(this).keypress(function (e) { idleTime = 0; });
+
+            $(window).on('blur', function() { hasLostFocus = true; });
+            $(window).on('focus', function() { 
+                if(hasLostFocus) window.location.reload(); 
+            });
         });
     </script>
 
