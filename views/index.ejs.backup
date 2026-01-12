@@ -1,0 +1,485 @@
+<!DOCTYPE html>
+<html lang="it" class="scroll-smooth">
+<head>
+    <title><%= title %></title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Libre+Franklin:wght@400;500;600;700&family=Playfair+Display:ital,wght@0,700;0,900;1,700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://code.jquery.com/jquery-3.2.1.slim.min.js" integrity="sha256-k2WSCIexGzOj3Euiig+TlR8gA0EmPjuc79OEeY5L45g=" crossorigin="anonymous"></script>
+    <script src="https://cdn.jsdelivr.net/npm/minisearch@6.1.0/dist/umd/index.min.js"></script>
+
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        serif: ['"Playfair Display"', 'serif'],
+                        sans: ['"Libre Franklin"', 'sans-serif'],
+                    },
+                    colors: {
+                        'paper-bg': '#f9f9f9',
+                        'news-black': '#111111',
+                        'accent-red': '#cc0000',
+                        'bias-sx': '#d32f2f',
+                        'bias-dx': '#1565c0',
+                        'bias-cx': '#2e7d32',
+                        'bias-ind': '#7b1fa2',
+                        'bias-default': '#666666'
+                    }
+                }
+            }
+        }
+    </script>
+
+    <script>
+        function timerIncrement() {
+            idleTime = idleTime + 1;
+            if (idleTime > 10) window.location.reload();
+        }            
+        var idleTime = 0;
+        $(document).ready(function () {
+            var idleInterval = setInterval(timerIncrement, 60000); 
+            $(this).mousemove(function (e) { idleTime = 0; });
+            $(this).keypress(function (e) { idleTime = 0; });
+        });
+    </script>
+
+    <% 
+    // HELPER FUNCTIONS
+    function getSentimentIcon(vote) {
+        if(vote == 'positive' || vote == 'pos') return '<i class="fa-solid fa-face-smile text-green-600"></i>';
+        if(vote == 'neutral' || vote == 'neg') return '<i class="fa-solid fa-face-meh text-gray-400"></i>';
+        if(vote == 'negative' || vote == 'ang') return '<i class="fa-solid fa-face-frown text-orange-600"></i>';
+        return '<i class="fa-regular fa-file-lines text-gray-400"></i>';
+    }
+    
+    function getBiasColor(label) {
+        var map = {
+            'sx': 'bias-sx', 'left': 'bias-sx',
+            'dx': 'bias-dx', 'right': 'bias-dx',
+            'cx': 'bias-cx', 'center': 'bias-cx',
+            'ind': 'bias-ind', 'finance': 'bias-ind'
+        };
+        return map[label] || 'bias-default';
+    }
+
+    // --- LOGICA TRENDING TOPICS AGGIORNATA ---
+    var wordCounts = {};
+    var stopWords = [
+        "della", "delle", "degli", "nella", "nelle", "negli", "dalle", "dalla", "sulla", "sulle", 
+        "questo", "questa", "questi", "queste", "quello", "quella", "quelli", "quelle", 
+        "hanno", "aveva", "erano", "stato", "stata", "stati", "state", "tutto", "tutta", 
+        "tutti", "tutte", "parte", "fatto", "prima", "dopo", "anche", "senza", "contro", 
+        "avere", "essere", "mentre", "verso", "forse", "visto", "così", "perché", "quindi", 
+        "ancora", "molto", "altri", "altro", "altra", "sempre", "quando", "dovere", "potere",
+        "nuovo", "nuova", "degli", "sugli"
+    ];
+
+    for(var i in articles) {
+        var art = articles[i];
+        var text = (art.title + " " + (art.description || "")).toLowerCase();
+        
+        // MODIFICA 1: Regex che accetta parole con trattini interni (es. crans-montana)
+        var matches = text.match(/[a-zàèéìòù]+(?:-[a-zàèéìòù]+)*/g);
+        
+        if (matches) {
+            matches.forEach(function(word) {
+                // Filtriamo parole corte e stop words
+                if (word.length >= 5 && stopWords.indexOf(word) === -1) {
+                    wordCounts[word] = (wordCounts[word] || 0) + 1;
+                }
+            });
+        }
+    }
+
+    var trendingTopics = Object.keys(wordCounts).sort(function(a, b) {
+        return wordCounts[b] - wordCounts[a];
+    }).slice(0, 7);
+
+    if (trendingTopics.length === 0) trendingTopics = ["Politica", "Cronaca", "Mondo", "Economia", "Sport", "Tech", "Cultura"];
+    %>
+</head>
+
+<body class="bg-paper-bg text-news-black font-sans antialiased selection:bg-accent-red selection:text-white flex flex-col min-h-screen">
+
+    <div class="bg-gray-100 border-b border-gray-300 py-2 text-[10px] md:text-xs font-bold uppercase tracking-wider text-gray-600">
+        <div class="max-w-screen-xl mx-auto px-4 flex flex-col md:flex-row justify-between items-center gap-2">
+            <div class="hidden md:flex items-center gap-3">
+                <span class="text-gray-400">Orientamento:</span>
+                <span class="flex items-center gap-1"><span class="block w-2 h-2 rounded-full bg-bias-sx"></span> SX</span>
+                <span class="flex items-center gap-1"><span class="block w-2 h-2 rounded-full bg-bias-cx"></span> CX</span>
+                <span class="flex items-center gap-1"><span class="block w-2 h-2 rounded-full bg-bias-dx"></span> DX</span>
+            </div>
+            <div class="block text-gray-500 font-normal normal-case">
+                <%-moment().locale("it").format("LL [h]HH:mm")%>
+            </div>
+        </div>
+    </div>
+
+    <header class="bg-white pt-6 pb-4 border-b-4 border-black text-center px-4">
+        <a href="/" class="no-underline text-black group">
+            <h1 class="font-serif font-black text-4xl md:text-7xl uppercase tracking-tighter leading-none group-hover:text-accent-red transition-colors">
+                Sfoglia la Notizia
+            </h1>
+        </a>
+    </header>
+
+    <nav class="bg-white border-b border-gray-200 sticky top-0 z-50 shadow-sm">
+        <div class="max-w-screen-xl mx-auto px-4 relative">
+            <div class="flex justify-between items-center h-12">
+                
+                <ul class="flex flex-nowrap overflow-x-auto gap-6 text-xs md:text-sm font-bold uppercase tracking-wide no-scrollbar h-full items-center pr-4">
+                    <% trendingTopics.forEach(function(topic) { 
+                        var displayTopic = topic.charAt(0).toUpperCase() + topic.slice(1);
+                    %>
+                    <li class="shrink-0">
+                        <a href="?q=<%=topic%>" data-term="<%=displayTopic%>" class="category-link hover:text-accent-red transition-colors whitespace-nowrap">
+                            <%=displayTopic%>
+                        </a>
+                    </li>
+                    <% }); %>
+                </ul>
+
+                <button id="toggleSearchBtn" class="shrink-0 w-10 h-10 flex items-center justify-center text-gray-600 hover:text-accent-red hover:bg-gray-50 rounded-full transition-colors">
+                    <i class="fa-solid fa-magnifying-glass text-lg"></i>
+                </button>
+            </div>
+        </div>
+
+        <div id="searchPanel" class="hidden absolute left-0 w-full bg-white border-b border-gray-200 shadow-lg z-40 p-4 transition-all duration-200 origin-top">
+            <div class="max-w-3xl mx-auto">
+                <div class="relative flex items-center w-full h-12 border border-gray-300 rounded-lg focus-within:border-accent-red focus-within:ring-1 focus-within:ring-accent-red overflow-hidden bg-gray-50">
+                    <div class="grid place-items-center h-full w-12 text-gray-400">
+                        <i class="fa-solid fa-magnifying-glass"></i>
+                    </div>
+                    <input
+                        class="peer h-full w-full outline-none text-base text-gray-700 bg-gray-50 pr-2"
+                        type="text"
+                        id="searchInput"
+                        placeholder="Cerca notizie..." 
+                        autocomplete="off" />
+                    <button id="closeSearchBtn" class="grid place-items-center h-full w-12 text-gray-400 hover:text-accent-red">
+                        <i class="fa-solid fa-xmark"></i>
+                    </button>
+                </div>
+                <div id="searchStats" class="text-xs text-gray-400 mt-2 h-4 pl-1"></div>
+            </div>
+        </div>
+    </nav>
+
+    <div id="mainContainer" class="max-w-screen-xl mx-auto bg-white shadow-xl min-h-screen grid grid-cols-1 lg:grid-cols-12 mt-6 transition-all duration-300 ease-in-out">
+
+        <main class="lg:col-span-12 p-4 md:p-10 border-r border-gray-200 relative">
+            
+            <div id="news-top" class="absolute -top-24"></div>
+
+            <div id="noResults" class="hidden text-center py-20 bg-gray-50 rounded-lg mx-4">
+                <i class="fa-solid fa-newspaper text-4xl text-gray-300 mb-2"></i>
+                <h3 class="font-serif font-bold text-gray-400">Nessun risultato</h3>
+            </div>
+
+            <% 
+            var visibleCount = 0;
+            var searchData = [];
+
+            for(i in articles){
+                var article = articles[i];
+                if (!article.alreadyShown && article.position <= 10) {
+                    
+                    var relatedTitles = "";
+                    if (article.related) {
+                        // FILTERED CORRELATED
+                        relatedTitles = article.related.filter(function(r, index) {
+                            var isVisible = (index > 0) && 
+                                          (article.confidence[r.url] > minConf) && 
+                                          (r.similarity >= minSim);
+                            return isVisible;
+                        }).map(function(r) {
+                            return corpus[r.url] ? corpus[r.url].title : "";
+                        }).join(" ");
+                    }
+
+                    searchData.push({
+                        id: article.url,
+                        title: article.title,
+                        description: article.description,
+                        related: relatedTitles
+                    });
+
+                    var displayImage = null;
+                    for(ii in article.images){ if(article.images[ii]) { displayImage = article.images[ii]; break; } }
+                    if(!displayImage && article.related) {
+                        for(ii in article.related){
+                            var relImg = corpus[article.related[ii].url].images;
+                            var show = (article.confidence[article.related[ii].url] > minConf && article.related[ii].similarity >= minSim);
+                            if (show && relImg && relImg != "") { displayImage = relImg; break; }
+                        }
+                    }
+            %>
+
+            <article class="searchable-article mb-12 border-b border-gray-200 pb-10 last:border-0" id="<%=article.url%>">
+                
+                <% if (visibleCount === 0) { %>
+                    <div class="flex justify-between items-center mb-2">
+                        <span class="bg-<%=getBiasColor(article.label)%> inline-block px-2 py-0.5 text-[10px] font-bold text-white uppercase tracking-widest rounded-sm">
+                            # <%=article.source%>
+                        </span>
+                        <a href="#news-top" class="text-[10px] font-bold text-gray-300 hover:text-gray-600 uppercase transition-colors no-underline">
+                            ^ top
+                        </a>
+                    </div>
+
+                    <h2 class="font-serif font-bold text-3xl md:text-5xl leading-tight mb-6 hover:text-accent-red transition-colors">
+                        <a href="<%=article.url%>" class="js-searchable"><%=article.title%></a>
+                    </h2>
+                    <% if(displayImage) { %>
+                    <div class="w-full mb-6 bg-gray-100 rounded-sm overflow-hidden">
+                        <img src="<%=displayImage%>" class="w-full h-auto" alt="News Image">
+                    </div>
+                    <% } %>
+                    <div class="text-lg text-gray-700 leading-relaxed mb-4 js-searchable">
+                        <%-article.description%> 
+                        <span class="inline-block ml-2"><%- getSentimentIcon(article.sentiment.vote) %></span>
+                        <span class="block mt-1 text-xs text-gray-400 font-medium uppercase">
+                            <%-moment(article.pubDate).locale("it").fromNow()%>
+                        </span>
+                    </div>
+
+                <% } else { %>
+                    <div class="flex flex-col md:flex-row gap-8 items-start">
+                        <% if(displayImage) { %>
+                        <div class="w-full md:w-1/3 shrink-0">
+                            <div class="w-full bg-gray-100 rounded-sm overflow-hidden">
+                                <img src="<%=displayImage%>" class="w-full h-auto transition-transform duration-700 hover:opacity-90" alt="News Image">
+                            </div>
+                        </div>
+                        <% } %>
+                        <div class="flex-grow w-full">
+                            
+                            <div class="flex justify-between items-center mb-2">
+                                <span class="bg-<%=getBiasColor(article.label)%> inline-block px-2 py-0.5 text-[10px] font-bold text-white uppercase tracking-widest rounded-sm">
+                                     # <%=article.source%>
+                                </span>
+                                <a href="#news-top" class="text-[10px] font-bold text-gray-300 hover:text-gray-600 uppercase transition-colors no-underline">
+                                    ^ top
+                                </a>
+                            </div>
+
+                            <h2 class="font-serif font-bold text-[26px] md:text-3xl leading-tight mb-3 hover:text-accent-red transition-colors">
+                                <a href="<%=article.url%>" class="js-searchable"><%=article.title%></a>
+                            </h2>
+                            <div class="text-base text-gray-700 leading-relaxed mb-3 js-searchable">
+                                <%-article.description%> 
+                                <span class="inline-block ml-2"><%- getSentimentIcon(article.sentiment.vote) %></span>
+                                <span class="block mt-1 text-[11px] text-gray-400 font-medium uppercase">
+                                    <%-moment(article.pubDate).locale("it").fromNow()%>
+                                </span>
+                            </div>
+                        </div>
+                    </div>
+                <% } %>
+
+                <% if (article.related && article.related.length > 0) { %>
+                    <div class="flex flex-col gap-0 border-t border-gray-100 <%= (visibleCount === 0) ? 'mt-6' : 'mt-4 md:ml-[calc(33.333%+2rem)]' %> pt-2">
+                        <% for(iii in article.related){
+                            var related = article.related[iii];
+                            if (article.confidence[related.url] > minConf && related.similarity >= minSim && iii > 0 ){
+                                var relatedData = corpus[related.url];
+                        %>
+                        <div class="flex items-stretch py-3 border-b border-gray-100 group hover:bg-gray-50 transition-colors last:border-0">
+                            <div class="w-1 bg-<%=getBiasColor(relatedData.label)%> mr-3 shrink-0"></div>
+                            <div class="flex-grow pr-2">
+                                <div class="flex justify-between items-center mb-1">
+                                    <span class="text-[9px] font-bold text-<%=getBiasColor(relatedData.label)%> uppercase tracking-wider">
+                                        [ <%=relatedData.source%> ]
+                                    </span>
+                                    <span class="text-[9px] text-gray-400 font-medium">
+                                        <%-moment(relatedData.pubDate).locale("it").fromNow()%>
+                                    </span>
+                                </div>
+                                <a href="<%=related.url%>" class="js-searchable block text-sm font-medium leading-snug group-hover:text-accent-red">
+                                    <%=relatedData.title%>
+                                </a>
+                            </div>
+                            <div class="flex items-center pl-2 border-l border-gray-100 w-10 justify-center shrink-0 text-base">
+                                <%- getSentimentIcon(relatedData.sentiment.vote) %>
+                            </div>
+                        </div>
+                        <% }} %>
+                    </div>
+                <% } %>
+            </article>
+
+            <% visibleCount++; } } %>
+        </main>
+    </div>
+
+    <script id="search-data-json" type="application/json">
+        <%- JSON.stringify(searchData) %>
+    </script>
+
+    <script>
+        const rawData = document.getElementById('search-data-json').textContent;
+        const searchData = JSON.parse(rawData);
+
+        // MODIFICA 2: Configurazione Tokenizer Personalizzato
+        // Il tokenizer di default spacca su ogni carattere non alfanumerico.
+        // Qui definiamo uno splitter che accetta qualsiasi cosa tranne lettere, numeri e TRATTINI.
+        let miniSearch = new MiniSearch({
+            fields: ['title', 'description', 'related'],
+            storeFields: ['id'],
+            // Tokenizza splittando su tutto ciò che NON è lettera, numero o trattino
+            tokenize: (string) => string.split(/[^a-zA-Z0-9àèéìòù-]+/).filter(term => term.length > 0),
+            searchOptions: { 
+                boost: { title: 2 }, 
+                prefix: true 
+            }
+        });
+        miniSearch.addAll(searchData);
+
+        // DOM Elements
+        const toggleBtn = document.getElementById('toggleSearchBtn');
+        const searchPanel = document.getElementById('searchPanel');
+        const closeBtn = document.getElementById('closeSearchBtn');
+        const input = document.getElementById('searchInput');
+        const stats = document.getElementById('searchStats');
+        const noResults = document.getElementById('noResults');
+        const articlesDOM = document.querySelectorAll('.searchable-article');
+        const categoryLinks = document.querySelectorAll('.category-link');
+        const mainContainer = document.getElementById('mainContainer');
+
+        // Init Original Content
+        document.querySelectorAll('.js-searchable').forEach(el => {
+            el.dataset.original = el.innerHTML;
+        });
+
+        // Highlight Function
+        function highlightText(textHTML, query) {
+            if (!query) return textHTML;
+            
+            const words = query.trim().split(/\s+/).filter(w => w.length > 0);
+            if (words.length === 0) return textHTML;
+
+            const safeWords = words.map(w => w.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'));
+            const pattern = `(${safeWords.join('|')})`;
+            const regex = new RegExp(pattern, 'gi');
+            
+            return textHTML.replace(regex, '<mark class="bg-yellow-200 text-news-black rounded-sm px-0.5">$1</mark>');
+        }
+
+        function setPanelState(isOpen) {
+            if (isOpen) {
+                searchPanel.classList.remove('hidden');
+                mainContainer.classList.add('pt-24'); 
+            } else {
+                searchPanel.classList.add('hidden');
+                mainContainer.classList.remove('pt-24'); 
+            }
+        }
+
+        function performSearch(query) {
+            if (!query) {
+                resetSearch();
+                return;
+            }
+
+            const results = miniSearch.search(query);
+            const foundIds = new Set(results.map(r => r.id));
+            let count = 0;
+
+            articlesDOM.forEach(art => {
+                const searchableElements = art.querySelectorAll('.js-searchable');
+
+                if (foundIds.has(art.id)) {
+                    art.classList.remove('hidden');
+                    count++;
+
+                    searchableElements.forEach(el => {
+                        if (el.dataset.original) {
+                            el.innerHTML = highlightText(el.dataset.original, query);
+                        }
+                    });
+
+                } else {
+                    art.classList.add('hidden');
+                }
+            });
+
+            stats.textContent = `${count} risultati trovati`;
+            if (count === 0) noResults.classList.remove('hidden');
+            else noResults.classList.add('hidden');
+        }
+
+        function resetSearch() {
+            stats.textContent = '';
+            noResults.classList.add('hidden');
+            
+            articlesDOM.forEach(art => {
+                art.classList.remove('hidden');
+                const searchableElements = art.querySelectorAll('.js-searchable');
+                searchableElements.forEach(el => {
+                    if (el.dataset.original) {
+                        el.innerHTML = el.dataset.original;
+                    }
+                });
+            });
+        }
+
+        function updateURL(query) {
+            const url = new URL(window.location);
+            if (query) {
+                url.searchParams.set('q', query);
+            } else {
+                url.searchParams.delete('q');
+            }
+            window.history.replaceState({}, '', url);
+        }
+
+        toggleBtn.addEventListener('click', () => {
+            const isHidden = searchPanel.classList.contains('hidden');
+            setPanelState(isHidden);
+            if (isHidden) input.focus();
+        });
+
+        closeBtn.addEventListener('click', () => {
+            setPanelState(false);
+            input.value = '';
+            resetSearch();
+            updateURL('');
+        });
+
+        input.addEventListener('input', (e) => {
+            const query = e.target.value;
+            performSearch(query);
+            updateURL(query);
+        });
+
+        categoryLinks.forEach(link => {
+            link.addEventListener('click', (e) => {
+                e.preventDefault();
+                const term = link.dataset.term;
+                input.value = term;
+                setPanelState(true);
+                performSearch(term);
+                updateURL(term);
+            });
+        });
+
+        document.addEventListener('DOMContentLoaded', () => {
+            const params = new URLSearchParams(window.location.search);
+            const query = params.get('q');
+
+            if (query) {
+                input.value = query;
+                setPanelState(true);
+                performSearch(query);
+            }
+        });
+    </script>
+</body>
+</html>
